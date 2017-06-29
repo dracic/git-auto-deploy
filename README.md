@@ -2,7 +2,7 @@
 Deploy your GitHub, GitLab or Bitbucket projects automatically on Git push events or web hooks
 =======
 
-
+You must use http://your-site.com/webhook as webhook url
 
 Login Page
 ![Login page](http://i.imgur.com/Mm3LtQ8.png "Login page")
