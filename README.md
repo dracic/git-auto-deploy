@@ -1,6 +1,5 @@
 # git-auto-deploy
 Deploy your GitHub, GitLab or Bitbucket projects automatically on Git push events or web hooks
-<<<<<<< HEAD
 =======
 
 
@@ -29,4 +28,3 @@ Change your email and password
 Email setting form
 You can choose how deployment email will be sent , either by native php command or by any external smtp server
 ![Email setting form](http://i.imgur.com/8C6Q14z.png "Email setting form")
->>>>>>> master
