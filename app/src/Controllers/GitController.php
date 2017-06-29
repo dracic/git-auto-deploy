@@ -23,7 +23,7 @@ class GitController
         $tm = microtime(true);
         try
         {
-            $debug = 1;
+            $debug = 0;
             if ($debug)
             {
                 //$data = $this->sampleDataBitBucket('develop');
