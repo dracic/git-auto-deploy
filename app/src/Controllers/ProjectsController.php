@@ -40,6 +40,7 @@ class ProjectsController
             $dbQuery = $dbQuery->where('type', "=", $params['query']['project_type']);
 
         }
+
         if (isset($params['query']['project_status']) && $params['query']['project_status'] != "")
         {
             $dbQuery = $dbQuery->where('status', "=", $params['query']['project_status']);
@@ -62,7 +63,8 @@ class ProjectsController
         $params['pagination']     = $pagination['pagination'];
         $params['project_types']  = $this->project_types;
         $params['project_status'] = $this->project_status;
-        return $this->view->render($response, 'projects.twig', $params);
+
+         return $this->view->render($response, 'projects.twig', $params);
 
     }
     public function form(Request $request, Response $response, $args)
@@ -144,6 +146,7 @@ class ProjectsController
                     'pre_hook'     => trim($params['pre_hook']),
                     'post_hook'    => trim($params['post_hook']),
                     'email_result' => (int) ($params['email_result']),
+                    'composer_update' => (int) @($params['composer_update']),
                 ];
 
                 if ($project)

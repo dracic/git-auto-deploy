@@ -104,10 +104,13 @@
             Project list ({{pagination.count }} item{{pagination.count>1?'s':'' }}) 
         </h4>
         <div class="float-right">
-            <a  class="btn btn-info" href="{{ urlFor('project_form') }}">
+          {% if  pagination.count    %}
+            <a  class="btn btn-info btn-sm" href="{{ urlFor('project_form') }}">
                 Create project
             </a>
+          {% endif %}
         </div>
+
         <table class="table table-responsive1 table-hover">
             <thead>
                 <tr>
@@ -130,6 +133,12 @@
                 </tr>
             </thead>
             <tbody>
+              {% if pagination.count==0 %}
+                <tfoot><tr> <td colspan="4" class="text-info text-center">Sorry no projects found. <a  class="btn btn-info btn-sm" href="{{ urlFor('project_form') }}">
+                Create project
+            </a></td> </tr></tfoot>
+                 
+               {% else %}
                 {% for project in projects %}
                 <tr>
                      <td>{{project.id}}</td>
@@ -155,27 +164,34 @@
                         {{ attribute(project_status, project.status) }}
                     </td>
                     <td>
-                        <a   href="{{ urlFor('project_form',{'id':project.id}) }}">
-                            <i class="fa fa-edit fa-fw" aria-hidden="true">
-                            </i>
-                            &nbsp;
-                        </a>
-                        |
-                        <a class="project_delete" data-id="{{project.id}}"  href="#">
-                            <i class="fa fa-trash fa-fw" aria-hidden="true">
-                            </i>
-                            &nbsp;
-                        </a>
+
+                      <div class="dropdown ">
+  <a class="btn-sm btn btn-secondary dropdown-toggle" href="#" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Action
+  </a>
+
+  <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+    <a class="dropdown-item" href="{{ urlFor('project_form',{'id':project.id}) }}">Edit</a>
+    <a class="dropdown-item project_delete" href="#" data-id="{{project.id}}" >Delete</a>
+   </div>
+</div>
+
+
+                         
                     </td>
                 </tr>
                 {% endfor %}
+                {% endif %}
                 <form method="post" id="frm_delete" action="{{urlFor('project_delete')}}"><input type="hidden" name="id" id="delete_id"></form>
             </tbody>
+
+            <tfoot><tr> <td colspan="4" class="text-info">{{ pagination.paging|raw }}</td> </tr></tfoot>
+
+
         </table>
     </div>
 </div>
-{{ pagination.paging|raw }}
-
+ 
 <div class="modal fade" id="deploy_log_modal">
   <div class="modal-dialog" role="document">
     <div class="modal-content">

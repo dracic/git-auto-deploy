@@ -29,8 +29,9 @@ class GitController
                 //$data = $this->sampleDataBitBucket('develop');
                 $data = $this->sampleDataGitLab('master');
 
+
             }
-              // p_d($data);
+                //p_d($data);
             //p_d(json_decode($data['post']['payload'],1));
             if (!isset($data) || !$data)
             {
