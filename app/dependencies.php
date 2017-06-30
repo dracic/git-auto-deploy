@@ -22,7 +22,7 @@ $container['view'] = function ($c)
     $view->addExtension(new Slim\Views\TwigExtension($c->get('router'), $c->get('request')->getUri()));
     $view->addExtension(new Twig_Extension_Debug());
     $view->addExtension(new Knlv\Slim\Views\TwigMessages(
-        new Slim\Flash\Messages()
+        $c['flash']
     ));
 
     $function = new Twig_SimpleFunction('var_dump', function ($v)
@@ -98,7 +98,7 @@ $container['paging'] = function ($c)
 };
 $container['git'] = function ($c)
 {
-    return new App\Services\RepoService($c['db'], $c['logger'], $c['setting'], $c['auth'], $c['utils'], 'git',[$c['github'],$c['bitbucket'],$c['gitlab']]);
+    return new App\Services\RepoService($c['db'], $c['logger'], $c['setting'], $c['auth'], $c['utils'], ['git'=>'git','composer'=>'/usr/local/bin/composer.phar'],[$c['github'],$c['bitbucket'],$c['gitlab']]);
 };
 $container['github'] = function ($c)
 {
@@ -117,17 +117,12 @@ $container['gitlab'] = function ($c)
 
 $container['db'] = function ($c)
 {
-
-    try
+     try
     {
-        $db = [
-            'db'   => 'my_deploy',
-            'host' => 'localhost',
-            'user' => 'root',
-            'pass' => 'root',
-        ];
-        $dsn          = "mysql:host={$db['host']};dbname={$db['db']};charset=utf8";
-        $pdo          = new \Slim\PDO\Database($dsn, $db['user'], $db['pass']);
+         
+        $dsn          = "mysql:host={$c->settings['db']['host']};dbname={$c->settings['db']['name']};charset=utf8";
+         
+        $pdo          = new \Slim\PDO\Database($dsn, $c->settings['db']['user'], $c->settings['db']['pass']);
         $user_table[] = "CREATE TABLE `users` (
   `id` bigint(10) NOT NULL,
   `username` varchar(255) NOT NULL,
@@ -158,7 +153,10 @@ $container['db'] = function ($c)
 
   `last_hook_time` datetime NOT NULL,
   `last_hook_duration` int(5) NOT NULL,
-  `last_hook_log` text NOT NULL
+  `last_hook_log` text NOT NULL,
+    `composer_update` int(1) NOT NULL
+
+  
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
         $projects_table[] = "ALTER TABLE `projects`
   ADD PRIMARY KEY (`id`);";
@@ -234,7 +232,7 @@ $container['session'] = function ($c)
 };
 $container['flash'] = function ()
 {
-    return new \Slim\Flash\Messages();
+    return new \App\Classes\Message();
 };
 $container['setting'] = function ($c)
 {

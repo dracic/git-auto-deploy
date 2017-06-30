@@ -8,7 +8,7 @@ use Symfony\Component\Process\Process;
 abstract class GitService
 {
 
-    protected $git, $logger, $hookData, $request, $gitPath, $setting, $auth, $db, $utils, $log = [], $startedon;
+    protected $git, $logger, $hookData, $request, $gitPath, $setting, $auth, $db, $utils, $log = [], $startedon, $binpaths;
     public $project;
 
     abstract public function parseRemoteRepoName();
@@ -21,7 +21,7 @@ abstract class GitService
     {
 
     }
-    public function init($git, $setting, $auth, $logger, $db, $utils, $request, $gitPath)
+    public function init($git, $setting, $auth, $logger, $db, $utils, $request, $binpaths)
     {
         $this->git     = $git;
         $this->setting = $setting;
@@ -31,8 +31,8 @@ abstract class GitService
 
         $this->logger = $logger;
 
-        $this->request = $request;
-        $this->gitPath = $gitPath;
+        $this->request  = $request;
+        $this->binpaths = $binpaths;
 
         $this->parsePayLoad();
         $this->parseRemoteRepoName();
@@ -132,7 +132,7 @@ abstract class GitService
                     }
                 }
                 $this->exec(
-                    $this->prepareGitCmd("clone  " . $this->getHookData('remote', 'repo_url') . " {$this->project['path']}"), "Unable to clone repo"
+                    $this->prepareCmd("git", "clone  " . $this->getHookData('remote', 'repo_url') . " {$this->project['path']}"), "Unable to clone repo"
                 );
             }
             // Else fetch changes
@@ -142,24 +142,33 @@ abstract class GitService
                 $this->log("Fetching repository '{$this->project['name']}'");
 
                 $this->exec(['cmd' =>
-                    $this->prepareGitCmd("fetch", " cd $repoPath && "), 'cwd' => $repoPath], "Unable to fetch repo"
+                    $this->prepareCmd("git", "fetch"), 'cwd' => $repoPath], "Unable to fetch repo"
                 );
 
             }
 
-            $out = $this->exec($this->prepareGitCmd("checkout -f {$this->project['branch']}", " cd $repoPath && GIT_WORK_TREE={$this->project['path']}"), "Unable to checkput repo");
+            $out = $this->exec($this->prepareCmd("git", "checkout -f {$this->project['branch']}", " cd $repoPath && GIT_WORK_TREE={$this->project['path']}"), "Unable to checkput repo");
             if (empty($out[1]) || stripos($out[1], "Your branch is behind") === false)
             {
                 $this->exec(['cmd' =>
-                    $this->prepareGitCmd("pull", " cd {$this->project['path']} && "), 'cwd' => $this->project['path']], "Unable to pull from repo"
+                    $this->prepareCmd("git", "pull", ""), 'cwd' => $this->project['path']], "Unable to pull from repo"
                 );
             }
 
-            $out = ($this->exec(['cmd' => $this->prepareGitCmd("status", " cd {$this->project['path']}&& "), 'cwd' => $this->project['path']], "Unable to check repo status"));
+            $out = ($this->exec(['cmd' => $this->prepareCmd("git", "status", ""), 'cwd' => $this->project['path']], "Unable to check repo status"));
 
             if (empty($out[1]) || stripos($out[1], "On branch {$this->project['branch']}") === false)
             {
                 throw new \Exception("Webhook failed");
+            }
+
+            if ($this->project['composer_update'])
+            {
+
+                $_ENV['HOME'] = realpath(__DIR__ . "/../../../cache");
+                $this->exec(['cmd' =>
+                    $this->prepareCmd("composer", "update", ""), 'cwd' => "/Volumes/MacData/htdocs/tools2/git-auto-deploy", 'env' => $_ENV], "Unable to run composer update"
+                );
             }
             $completed = true;
 
@@ -183,7 +192,6 @@ abstract class GitService
                 {
                     $this->log("Failed to run post hook script");
                 }
-
             }
             if ($this->project['email_result'])
             {
@@ -298,9 +306,13 @@ abstract class GitService
         }
     }
 
-    public function prepareGitCmd($cmd, $prepend = "")
+    public function prepareCmd($bin, $cmd, $prepend = "")
     {
-        return "$prepend $this->gitPath $cmd";
+        if (empty($this->binpaths[$bin]))
+        {
+            throw new Exception("Unable to find binary '$bin' location");
+        }
+        return "$prepend {$this->binpaths[$bin]} $cmd";
     }
 
     public function ip_in_range($ip, $range)

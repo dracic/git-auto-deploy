@@ -5,7 +5,7 @@ class RepoService
 {
     private $db, $logger, $setting, $auth, $utils, $gitPath, $repoServices;
 
-    public function __construct($db, $logger, $setting, $auth, $utils, $gitPath, $repoServices)
+    public function __construct($db, $logger, $setting, $auth, $utils, $binpaths, $repoServices)
     {
         $this->db = $db;
 
@@ -14,7 +14,7 @@ class RepoService
         $this->auth    = $auth;
         $this->utils   = $utils;
 
-        $this->gitPath      = $gitPath;
+        $this->binpaths      = $binpaths;
         $this->repoServices = $repoServices;
 
     }
@@ -50,7 +50,7 @@ class RepoService
             if ($repoService->identify($data))
             {
 
-                $repoService->init($this, $this->setting, $this->auth, $this->logger, $this->db, $this->utils, $request, $this->gitPath);
+                $repoService->init($this, $this->setting, $this->auth, $this->logger, $this->db, $this->utils, $request, $this->binpaths);
                 $repoService->validate();
                 $repoService->sync();
                 return $repoService;
